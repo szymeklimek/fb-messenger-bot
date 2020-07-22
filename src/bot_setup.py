@@ -1,110 +1,173 @@
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.chrome.options import Options
-import time
-import re
+import logging as log
 import os
+import random
+import time
 
-os.chdir("..")
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.support.ui import WebDriverWait
 
-driver_path = os.getcwd() + "\driver\chromedriver.exe"
+import driver_setup
 
-ff_options = Options()
-
-prefs = {"profile.default_content_setting_values.notifications" : 2}
-
-ff_options.add_experimental_option("prefs",prefs)
-ff_options.add_argument("--disable-extensions")
-ff_options.add_argument("--disable-gpu")
-#chrome_options.add_argument("--no-sandbox") # linux only
-ff_options.add_argument("--headless")
-# chrome_options.headless = True # also works
+meme_img_list = list()
 
 
-USEREMAIL = "mafiabot@gmail.com"
-USERPASSWORD = "*jK`=s:5kV]}Ub>*"
-USERTARGET = "1758853220817730"
+class BotApp:
 
-userTargetUrl = "https://www.facebook.com/messages/t/" + USERTARGET
+    # TODO  - trzeba ogarnac plik config.ini - libka configparser
+    # config = configparser.ConfigParser()
+    # config.read('config.ini')
 
-driver = webdriver.Chrome(driver_path, options=ff_options)
-driver.get(userTargetUrl)
+    memespath = "D:/pythonscr/fb-messenger-bot/img"
+    user = "mafiabot123@gmail.com"
+    pw = "*jK`=s:5kV]}Ub>*"
+    test_id = "3724459277571389"
+    mafia_id = "1758853220817730"
+    url = "https://www.facebook.com/messages/t/" + test_id
 
-WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="email"]')))
+    driver = driver_setup.get_driver()
 
-#username_box = driver.find_element_by_id('email')
+    @staticmethod
+    def print_tags(driver, tags):
 
-username_box = driver.find_element_by_xpath('//*[@id="email"]')
-username_box.send_keys(USEREMAIL)
-password_box = driver.find_element_by_xpath('//*[@id="pass"]')
-password_box.send_keys(USERPASSWORD)
-password_box.send_keys(Keys.RETURN)
+        text_area = None
 
-print(driver.current_url)
+        log.info("Bot has been tagged: Printing Users '@' Tags... ")
 
-bot_alias = ["@Matthew Botte", "@Matthew", "Botte"]
+        for name in tags:
+            text_area = driver.switch_to.active_element
+            text_area.send_keys(name)
+            text_area = driver.switch_to.active_element
+            time.sleep(.05)
+            text_area.send_keys(Keys.ENTER)
+            time.sleep(.05)
+            text_area.send_keys(Keys.ARROW_UP)
+            time.sleep(.05)
+            text_area.send_keys(Keys.SPACE)
 
-tag_names = driver.find_elements_by_class_name('_8slc')
-tag_names = [x.text for x in tag_names]
-tag_names = ["@" + name + " " for name in tag_names]
-tag_names = [name for name in tag_names if name != "@Matthew Botte "]
-tag_names = [name.split(" ")[0] for name in tag_names]
-print(tag_names)
-
-def print_tags(tags):
-
-    for name in tags:
-        text_area = driver.switch_to.active_element
-        text_area.send_keys(name)
-        text_area = driver.switch_to.active_element
-        time.sleep(.1)
-        print("pushing enter")
+        time.sleep(.05)
         text_area.send_keys(Keys.ENTER)
-        time.sleep(.1)
-        print("pushing arrow")
-        text_area.send_keys(Keys.ARROW_UP)
-        time.sleep(.1)
-        print("pushing space")
-        text_area.send_keys(Keys.SPACE)
+        text_area = driver.switch_to.active_element
+        time.sleep(.05)
+        text_area.send_keys("Next poll available in 1 minute.")
+        time.sleep(.05)
+        text_area.send_keys(Keys.ENTER)
 
-    time.sleep(.1)
-    print("pushing all")
-    text_area.send_keys(Keys.ENTER)
-    text_area = driver.switch_to.active_element
-    time.sleep(.1)
-    text_area.send_keys("Next poll available in 1 minute.")
-    time.sleep(.1)
-    text_area.send_keys(Keys.ENTER)
-    time.sleep(60)
+        log.info("Done tagging.")
 
-def do_stuff(tags):
-    driver.get(userTargetUrl)
-    src = driver.page_source
-    text_found = re.search('@Matthew Botte', src)
-    if(text_found != None):
-        print_tags(tags)
-        print("okej")
-    else:
-        print("nieokej")
+        # TODO - timeout
+        # 60s timeout - need to set as property in file
+        time.sleep(5)
 
-print("Ready")
-while(True):
-    try:
-        print("Checking for request in 10...")
-        time.sleep(10)
-        print("Checking...")
-        do_stuff(tag_names)
-    except KeyboardInterrupt:
-        driver.close()
+    @staticmethod
+    def print_meme(driver):
 
-# while(True):
-#     print("waiting 5 secs")
-#     time.sleep(5)
-#     bot_tags = driver.find_elements_by_class_name("_ih- _p")
-#     print(bot_tags)
-#     for tag in bot_tags:
-#         if(tag.text in bot_alias):
-#             print("success")
+        log.info("Bot has been tagged: Sending Random Meme... ")
+
+        img_path = BotApp.memespath + "/" + random.choice(meme_img_list)
+
+        try:
+            img_input = driver.find_element_by_xpath(
+                '/html/body/div[1]/div[3]/div[1]/div/div/div/div[2]/span/div[2]/div[2]/div[2]/div/div[3]/div['
+                '2]/form/div/span/input')
+        except:
+            img_input = driver.find_element_by_xpath(
+                '/html/body/div[1]/div[3]/div[1]/div/div/div/div[2]/span/div[2]/div[2]/div[2]/div/div[3]/div['
+                '2]/form/div/span/div/input')
+            pass
+
+        time.sleep(.05)
+        img_input.send_keys(img_path)
+        time.sleep(.05)
+        text_area = driver.switch_to.active_element
+        time.sleep(.05)
+        text_area.send_keys(Keys.ENTER)
+
+        log.info("Meme sent.")
+
+    @staticmethod
+    def search_tagging(driver, tags):
+
+        src = driver.page_source
+        meme_found = "@Matthew Botte</a></div><span> -meme" in src  # re.search('@Matthew Botte -meme', src)
+        tag_found = "@Matthew Botte</a></div></" in src  # re.search('@Matthew Botte', src)
+
+        if meme_found:
+
+            log.info("Found @Bot meme tag.")
+            BotApp.print_meme(driver)
+            # needs to pause for a while after sending, else breaks
+            time.sleep(5)
+            BotApp.hide_bot_tags(driver)
+
+        else:
+            log.info("Did not find @Bot meme tag.")
+
+        if tag_found:
+
+            log.info("Found @Bot tag.")
+            BotApp.print_tags(driver, tags)
+            BotApp.hide_bot_tags(driver)
+
+        else:
+            log.info("Did not find @Bot tag.")
+
+    @staticmethod
+    def hide_bot_tags(driver):
+        element_list = driver.find_elements_by_xpath("//*[contains(text(), '@Matthew Botte')]")
+        for element in element_list:
+            driver.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", element)
+
+    @staticmethod
+    def main_loop(driver, tags):
+
+        while True:
+            try:
+
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                log.info("Checking for request in 5...")
+                time.sleep(5)
+                log.info("Checking now.")
+                BotApp.search_tagging(driver, tags)
+
+            except KeyboardInterrupt:
+                driver.close()
+
+    @staticmethod
+    def main():
+
+        log.basicConfig(filename='botlogs.log', level=log.INFO, filemode='w')
+
+        driver = BotApp.driver
+
+        BotApp.driver.get(BotApp.url)
+
+        WebDriverWait(driver, 20).until(ec.element_to_be_clickable((By.XPATH, '//*[@id="email"]')))
+
+        username_box = driver.find_element_by_xpath('//*[@id="email"]')
+        username_box.send_keys(BotApp.user)
+        password_box = driver.find_element_by_xpath('//*[@id="pass"]')
+        password_box.send_keys(BotApp.pw)
+        password_box.send_keys(Keys.RETURN)
+
+        log.info(driver.current_url)
+
+        tag_names = driver.find_elements_by_class_name('_8slc')
+        tag_names = [x.text for x in tag_names]
+        tag_names = ["@" + name + " " for name in tag_names]
+        tag_names = [name for name in tag_names if name != "@Matthew Botte "]
+        tag_names = [name.split(" ")[0] for name in tag_names]
+
+        log.info(tag_names)
+        log.info("Logged in, waiting for requests...")
+
+        BotApp.hide_bot_tags(driver)
+
+        BotApp.main_loop(driver, tag_names)
+
+
+if __name__ == "__main__":
+    meme_img_list = os.listdir(BotApp.memespath)
+
+    BotApp.main()
