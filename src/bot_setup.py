@@ -9,7 +9,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-import driver_setup
+import src.driver_setup as driver_setup
 
 meme_img_list = list()
 
@@ -21,14 +21,14 @@ class BotApp:
     # config = configparser.ConfigParser()
     # config.read('config.ini')
 
-    memespath = "D:/pythonscr/fb-messenger-bot/img"
+    #memespath = "D:/pythonscr/fb-messenger-bot/img"
     user = "mafiabot123@gmail.com"
     pw = "*jK`=s:5kV]}Ub>*"
     test_id = "3724459277571389"
     mafia_id = "1758853220817730"
     url = "https://www.facebook.com/messages/t/" + test_id
 
-    driver = driver_setup.get_driver()
+    driver = driver_setup.get_chrome_driver()
 
     @staticmethod
     def print_tags(driver, tags):
@@ -48,11 +48,13 @@ class BotApp:
             time.sleep(.05)
             text_area.send_keys(Keys.SPACE)
 
+        timeout = 5
+
         time.sleep(.05)
         text_area.send_keys(Keys.ENTER)
         text_area = driver.switch_to.active_element
         time.sleep(.05)
-        text_area.send_keys("Next poll available in 1 minute.")
+        text_area.send_keys("Next poll available in {:d} seconds.".format(timeout))
         time.sleep(.05)
         text_area.send_keys(Keys.ENTER)
 
@@ -60,8 +62,6 @@ class BotApp:
 
         # TODO - timeout
         # 60s timeout - need to set as property in file
-
-        timeout = 5
 
         log.info("Sleeping for {:d} seconds.".format(timeout))
         time.sleep(timeout)
@@ -163,13 +163,15 @@ class BotApp:
 
         log.info(driver.current_url)
 
+        #time.sleep(10)
+
         tag_names = driver.find_elements_by_class_name('_8slc')
         tag_names = [x.text for x in tag_names]
         tag_names = ["@" + name + " " for name in tag_names]
         tag_names = [name for name in tag_names if name != "@Matthew Botte "]
         tag_names = [name.split(" ")[0] for name in tag_names]
 
-        p = psutil.Process(driver.service.process.pid)
+        #p = psutil.Process(driver.service.process.pid)
 
         log.info(tag_names)
         log.info("Logged in, waiting for requests...")
@@ -178,10 +180,13 @@ class BotApp:
         #     log.info(process.__getattribute__("pid"))
 
         BotApp.hide_bot_tags(driver)
+
+        #time.sleep(10)
+
         BotApp.main_loop(driver, tag_names)
 
 
 if __name__ == "__main__":
-    meme_img_list = os.listdir(BotApp.memespath)
+    #meme_img_list = os.listdir(BotApp.memespath)
 
     BotApp.main()
