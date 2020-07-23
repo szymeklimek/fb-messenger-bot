@@ -2,6 +2,7 @@ import logging as log
 import os
 import random
 import time
+import psutil
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -15,6 +16,7 @@ meme_img_list = list()
 
 class BotApp:
 
+    # TODO - dynamiczne/reczne updatowanie listy uczestników
     # TODO  - trzeba ogarnac plik config.ini - libka configparser
     # config = configparser.ConfigParser()
     # config.read('config.ini')
@@ -58,7 +60,11 @@ class BotApp:
 
         # TODO - timeout
         # 60s timeout - need to set as property in file
-        time.sleep(5)
+
+        timeout = 5
+
+        log.info("Sleeping for {:d} seconds.".format(timeout))
+        time.sleep(timeout)
 
     @staticmethod
     def print_meme(driver):
@@ -67,15 +73,16 @@ class BotApp:
 
         img_path = BotApp.memespath + "/" + random.choice(meme_img_list)
 
-        try:
-            img_input = driver.find_element_by_xpath(
-                '/html/body/div[1]/div[3]/div[1]/div/div/div/div[2]/span/div[2]/div[2]/div[2]/div/div[3]/div['
-                '2]/form/div/span/input')
-        except:
-            img_input = driver.find_element_by_xpath(
-                '/html/body/div[1]/div[3]/div[1]/div/div/div/div[2]/span/div[2]/div[2]/div[2]/div/div[3]/div['
-                '2]/form/div/span/div/input')
-            pass
+        # try:
+        #     img_input = driver.find_element_by_xpath(
+        #         '/html/body/div[1]/div[3]/div[1]/div/div/div/div[2]/span/div[2]/div[2]/div[2]/div/div[3]/div[2]/form/div/span/input')
+        # except:
+        #     img_input = driver.find_element_by_xpath(
+        #         '/html/body/div[1]/div[3]/div[1]/div/div/div/div[2]/span/div[2]/div[2]/div[2]/div/div[3]/div[2]/form/div/span/div/input')
+        #     pass
+
+        img_input = driver.find_element_by_xpath(
+            '/html/body/div[1]/div[3]/div[1]/div/div/div/div[2]/span/div[2]/div[2]/div[2]/div/div[3]/div[2]/form/div/span/input')
 
         time.sleep(.05)
         img_input.send_keys(img_path)
@@ -98,11 +105,14 @@ class BotApp:
             log.info("Found @Bot meme tag.")
             BotApp.print_meme(driver)
             # needs to pause for a while after sending, else breaks
+            # time.sleep(10)
+            time.sleep(5)
+            driver.get(BotApp.url)
             time.sleep(5)
             BotApp.hide_bot_tags(driver)
 
-        else:
-            log.info("Did not find @Bot meme tag.")
+        # else:
+        #     log.info("Did not find @Bot meme tag.")
 
         if tag_found:
 
@@ -110,8 +120,8 @@ class BotApp:
             BotApp.print_tags(driver, tags)
             BotApp.hide_bot_tags(driver)
 
-        else:
-            log.info("Did not find @Bot tag.")
+        # else:
+        #     log.info("Did not find @Bot tag.")
 
     @staticmethod
     def hide_bot_tags(driver):
@@ -125,10 +135,10 @@ class BotApp:
         while True:
             try:
 
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                log.info("Checking for request in 5...")
+                # probably not needed - driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                log.debug("Checking for request in 5...")
                 time.sleep(5)
-                log.info("Checking now.")
+                log.debug("Checking now.")
                 BotApp.search_tagging(driver, tags)
 
             except KeyboardInterrupt:
@@ -137,7 +147,7 @@ class BotApp:
     @staticmethod
     def main():
 
-        log.basicConfig(filename='botlogs.log', level=log.INFO, filemode='w')
+        log.basicConfig(filename='botlogs.log', level=log.DEBUG, filemode='w')
 
         driver = BotApp.driver
 
@@ -159,11 +169,15 @@ class BotApp:
         tag_names = [name for name in tag_names if name != "@Matthew Botte "]
         tag_names = [name.split(" ")[0] for name in tag_names]
 
+        p = psutil.Process(driver.service.process.pid)
+
         log.info(tag_names)
         log.info("Logged in, waiting for requests...")
+        # log.info(p.__getattribute__("pid"))
+        # for process in p.children(recursive=True):
+        #     log.info(process.__getattribute__("pid"))
 
         BotApp.hide_bot_tags(driver)
-
         BotApp.main_loop(driver, tag_names)
 
 
