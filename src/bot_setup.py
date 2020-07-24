@@ -1,4 +1,5 @@
 import logging as log
+import google.cloud.logging
 import os
 import random
 import time
@@ -26,7 +27,7 @@ class BotApp:
     pw = os.environ['BOTPW'].replace('\\', '')
     test_id = "3724459277571389"
     mafia_id = "1758853220817730"
-    url = "https://www.facebook.com/messages/t/" + test_id
+    url = "https://www.facebook.com/messages/t/" + mafia_id
 
     driver = driver_setup.get_chrome_driver()
 
@@ -136,9 +137,9 @@ class BotApp:
             try:
 
                 # probably not needed - driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                log.debug("Checking for request in 5...")
+                log.info("Checking for request in 5...")
                 time.sleep(5)
-                log.debug("Checking now.")
+                log.info("Checking now.")
                 BotApp.search_tagging(driver, tags)
 
             except KeyboardInterrupt:
@@ -146,7 +147,10 @@ class BotApp:
 
     @staticmethod
     def main():
-
+        
+        lclient = google.cloud.logging.Client()
+        client.get_default_handler()
+        client.setup_logging()
         log.basicConfig(filename='botlogs.log', level=log.DEBUG, filemode='w')
 
         driver = BotApp.driver
