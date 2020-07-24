@@ -97,7 +97,7 @@ class BotApp:
     def search_tagging(driver, tags):
 
         src = driver.page_source
-        meme_found = "@Matthew Botte</a></div><span> -meme" in src  # re.search('@Matthew Botte -meme', src)
+        meme_found = "@Matthew Botte</a></div><span> meme" in src  # re.search('@Matthew Botte -meme', src)
         tag_found = "@Matthew Botte</a></div></" in src  # re.search('@Matthew Botte', src)
 
         if meme_found:
