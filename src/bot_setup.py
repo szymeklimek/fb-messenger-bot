@@ -149,8 +149,8 @@ class BotApp:
     def main():
         
         lclient = google.cloud.logging.Client()
-        client.get_default_handler()
-        client.setup_logging()
+        lclient.get_default_handler()
+        lclient.setup_logging()
         log.basicConfig(filename='botlogs.log', level=log.DEBUG, filemode='w')
 
         driver = BotApp.driver
