@@ -9,7 +9,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-import src.driver_setup as driver_setup
+import driver_setup as driver_setup
 
 meme_img_list = list()
 
@@ -21,12 +21,12 @@ class BotApp:
     # config = configparser.ConfigParser()
     # config.read('config.ini')
 
-    #memespath = "D:/pythonscr/fb-messenger-bot/img"
+    memespath = "/home/szklimowicz/fb-messenger-bot/img/"
     user = "mafiabot123@gmail.com"
     pw = "*jK`=s:5kV]}Ub>*"
     test_id = "3724459277571389"
     mafia_id = "1758853220817730"
-    url = "https://www.facebook.com/messages/t/" + test_id
+    url = "https://www.facebook.com/messages/t/" + mafia_id
 
     driver = driver_setup.get_chrome_driver()
 
@@ -48,7 +48,7 @@ class BotApp:
             time.sleep(.05)
             text_area.send_keys(Keys.SPACE)
 
-        timeout = 5
+        timeout = 60
 
         time.sleep(.05)
         text_area.send_keys(Keys.ENTER)
@@ -61,7 +61,7 @@ class BotApp:
         log.info("Done tagging.")
 
         # TODO - timeout
-        # 60s timeout - need to set as property in file
+        # timeout - need to set as property in file
 
         log.info("Sleeping for {:d} seconds.".format(timeout))
         time.sleep(timeout)
@@ -187,6 +187,6 @@ class BotApp:
 
 
 if __name__ == "__main__":
-    #meme_img_list = os.listdir(BotApp.memespath)
+    meme_img_list = os.listdir(BotApp.memespath)
 
     BotApp.main()
