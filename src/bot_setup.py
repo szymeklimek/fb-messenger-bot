@@ -23,10 +23,10 @@ class BotApp:
 
     memespath = "/home/szklimowicz/fb-messenger-bot/img/"
     user = "mafiabot123@gmail.com"
-    pw = "*jK`=s:5kV]}Ub>*"
+    pw = os.environ['BOTPW'].replace('\\', '')
     test_id = "3724459277571389"
     mafia_id = "1758853220817730"
-    url = "https://www.facebook.com/messages/t/" + mafia_id
+    url = "https://www.facebook.com/messages/t/" + test_id
 
     driver = driver_setup.get_chrome_driver()
 
