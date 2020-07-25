@@ -120,7 +120,7 @@ class BotApp:
             BotApp.print_help()
 
         if update_found:
-            BotApp.update_conf_participants()
+            BotApp.user_tags = BotApp.update_conf_participants()
 
         time.sleep(5)
         BotApp.hide_bot_tags()
@@ -140,7 +140,7 @@ class BotApp:
         tag_names = [name for name in tag_names if name != "@Matthew Botte "]
         tag_names = [name.split(" ")[0] for name in tag_names]
 
-        BotApp.user_tags = tag_names
+        return tag_names
 
     @staticmethod
     def main_loop():
@@ -176,14 +176,14 @@ class BotApp:
         password_box.send_keys(BotApp.pw)
         password_box.send_keys(Keys.RETURN)
 
-        BotApp.update_conf_participants()
+        BotApp.user_tags = BotApp.update_conf_participants()
         BotApp.hide_bot_tags()
-        BotApp.main_loop()
 
         log.info(driver.current_url)
         log.info(BotApp.user_tags)
         log.info("Logged in, waiting for requests...")
-
+        
+        BotApp.main_loop()
 
 if __name__ == "__main__":
     meme_img_list = os.listdir(BotApp.memespath)
