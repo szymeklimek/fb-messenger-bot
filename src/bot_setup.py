@@ -3,7 +3,6 @@ import google.cloud.logging
 import os
 import random
 import time
-import psutil
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -22,26 +21,30 @@ class BotApp:
     # config = configparser.ConfigParser()
     # config.read('config.ini')
 
-    memespath = "/home/szklimowicz/fb-messenger-bot/img/"
+    driver = driver_setup.get_chrome_driver()
+    user_tags = []
+
+    memespath = os.getcwd() + "/img/"
     user = "mafiabot123@gmail.com"
     pw = os.environ['BOTPW'].replace('\\', '')
     test_id = "3724459277571389"
     mafia_id = "1758853220817730"
-    url = "https://www.facebook.com/messages/t/" + mafia_id
-
-    driver = driver_setup.get_chrome_driver()
+    url = "https://www.facebook.com/messages/t/" + test_id
 
     @staticmethod
-    def print_tags(driver, tags):
-
+    def print_tags():
         text_area = None
 
-        log.info("Bot has been tagged: Printing Users '@' Tags... ")
+        # TODO - timeout
+        # timeout - need to set as property in file
+        timeout = 55
 
-        for name in tags:
-            text_area = driver.switch_to.active_element
+        log.info("Found @Bot tag. Printing Users '@' Tags... ")
+
+        for name in BotApp.user_tags:
+            text_area = BotApp.driver.switch_to.active_element
             text_area.send_keys(name)
-            text_area = driver.switch_to.active_element
+            text_area = BotApp.driver.switch_to.active_element
             time.sleep(.05)
             text_area.send_keys(Keys.ENTER)
             time.sleep(.05)
@@ -49,11 +52,9 @@ class BotApp:
             time.sleep(.05)
             text_area.send_keys(Keys.SPACE)
 
-        timeout = 60
-
         time.sleep(.05)
         text_area.send_keys(Keys.ENTER)
-        text_area = driver.switch_to.active_element
+        text_area = BotApp.driver.switch_to.active_element
         time.sleep(.05)
         text_area.send_keys("Next poll available in {:d} seconds.".format(timeout))
         time.sleep(.05)
@@ -61,26 +62,16 @@ class BotApp:
 
         log.info("Done tagging.")
 
-        # TODO - timeout
-        # timeout - need to set as property in file
-
         log.info("Sleeping for {:d} seconds.".format(timeout))
         time.sleep(timeout)
 
     @staticmethod
-    def print_meme(driver):
+    def print_meme():
+        driver = BotApp.driver
 
-        log.info("Bot has been tagged: Sending Random Meme... ")
+        log.info("Found @Bot meme tag. Sending Random Meme... ")
 
         img_path = BotApp.memespath + "/" + random.choice(meme_img_list)
-
-        # try:
-        #     img_input = driver.find_element_by_xpath(
-        #         '/html/body/div[1]/div[3]/div[1]/div/div/div/div[2]/span/div[2]/div[2]/div[2]/div/div[3]/div[2]/form/div/span/input')
-        # except:
-        #     img_input = driver.find_element_by_xpath(
-        #         '/html/body/div[1]/div[3]/div[1]/div/div/div/div[2]/span/div[2]/div[2]/div[2]/div/div[3]/div[2]/form/div/span/div/input')
-        #     pass
 
         img_input = driver.find_element_by_xpath(
             '/html/body/div[1]/div[3]/div[1]/div/div/div/div[2]/span/div[2]/div[2]/div[2]/div/div[3]/div[2]/form/div/span/input')
@@ -94,60 +85,80 @@ class BotApp:
 
         log.info("Meme sent.")
 
-    @staticmethod
-    def search_tagging(driver, tags):
+        time.sleep(5)
+        driver.get(BotApp.url)
 
-        src = driver.page_source
-        meme_found = "@Matthew Botte</a></div><span> meme" in src  # re.search('@Matthew Botte -meme', src)
-        tag_found = "@Matthew Botte</a></div></" in src  # re.search('@Matthew Botte', src)
+    @staticmethod
+    def print_help():
+        text_area = BotApp.driver.switch_to.active_element
+        time.sleep(.05)
+        text_area.send_keys(
+
+            "Available commands:\n'@Matthew Botte' => Tags all of the conversation "
+            "members.\n'@Matthew Botte update' => Updates the conversation member list - use after adding/removing "
+            "people.\n'@Matthew Botte meme' => Sends a random meme."
+
+        )
+        time.sleep(.05)
+        text_area.send_keys(Keys.ENTER)
+
+    @staticmethod
+    def search_tagging():
+        src = BotApp.driver.page_source
+        meme_found = "@Matthew Botte</a></div><span> meme" in src
+        tag_found = "@Matthew Botte</a></div></" in src
+        help_found = "@Matthew Botte</a></div><span> help" in src
+        update_found = "@Matthew Botte</a></div><span> update" in src
 
         if meme_found:
-
-            log.info("Found @Bot meme tag.")
-            BotApp.print_meme(driver)
-            # needs to pause for a while after sending, else breaks
-            # time.sleep(10)
-            time.sleep(5)
-            driver.get(BotApp.url)
-            time.sleep(5)
-            BotApp.hide_bot_tags(driver)
-
-        # else:
-        #     log.info("Did not find @Bot meme tag.")
+            BotApp.print_meme()
 
         if tag_found:
+            BotApp.print_tags()
 
-            log.info("Found @Bot tag.")
-            BotApp.print_tags(driver, tags)
-            BotApp.hide_bot_tags(driver)
+        if help_found:
+            BotApp.print_help()
 
-        # else:
-        #     log.info("Did not find @Bot tag.")
+        if update_found:
+            BotApp.update_conf_participants()
+
+        time.sleep(5)
+        BotApp.hide_bot_tags()
 
     @staticmethod
-    def hide_bot_tags(driver):
-        element_list = driver.find_elements_by_xpath("//*[contains(text(), '@Matthew Botte')]")
+    def hide_bot_tags():
+        element_list = BotApp.driver.find_elements_by_xpath("//*[contains(text(), '@Matthew Botte')]")
+        js = "var element = arguments[0];element.parentNode.removeChild(element);"
         for element in element_list:
-            driver.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", element)
+            BotApp.driver.execute_script(js, element)
 
     @staticmethod
-    def main_loop(driver, tags):
+    def update_conf_participants():
+        tag_names = BotApp.driver.find_elements_by_class_name('_8slc')
+        tag_names = [x.text for x in tag_names]
+        tag_names = ["@" + name + " " for name in tag_names]
+        tag_names = [name for name in tag_names if name != "@Matthew Botte "]
+        tag_names = [name.split(" ")[0] for name in tag_names]
+
+        BotApp.user_tags = tag_names
+
+    @staticmethod
+    def main_loop():
 
         while True:
             try:
 
-                # probably not needed - driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 log.info("Checking for request in 5...")
                 time.sleep(5)
                 log.info("Checking now.")
-                BotApp.search_tagging(driver, tags)
+                BotApp.search_tagging()
 
             except KeyboardInterrupt:
-                driver.close()
+                BotApp.driver.close()
 
     @staticmethod
     def main():
-        
+
         lclient = google.cloud.logging.Client()
         lclient.get_default_handler()
         lclient.setup_logging()
@@ -155,7 +166,7 @@ class BotApp:
 
         driver = BotApp.driver
 
-        BotApp.driver.get(BotApp.url)
+        driver.get(BotApp.url)
 
         WebDriverWait(driver, 20).until(ec.element_to_be_clickable((By.XPATH, '//*[@id="email"]')))
 
@@ -165,29 +176,13 @@ class BotApp:
         password_box.send_keys(BotApp.pw)
         password_box.send_keys(Keys.RETURN)
 
+        BotApp.update_conf_participants()
+        BotApp.hide_bot_tags()
+        BotApp.main_loop()
+
         log.info(driver.current_url)
-
-        #time.sleep(10)
-
-        tag_names = driver.find_elements_by_class_name('_8slc')
-        tag_names = [x.text for x in tag_names]
-        tag_names = ["@" + name + " " for name in tag_names]
-        tag_names = [name for name in tag_names if name != "@Matthew Botte "]
-        tag_names = [name.split(" ")[0] for name in tag_names]
-
-        #p = psutil.Process(driver.service.process.pid)
-
-        log.info(tag_names)
+        log.info(BotApp.user_tags)
         log.info("Logged in, waiting for requests...")
-        # log.info(p.__getattribute__("pid"))
-        # for process in p.children(recursive=True):
-        #     log.info(process.__getattribute__("pid"))
-
-        BotApp.hide_bot_tags(driver)
-
-        #time.sleep(10)
-
-        BotApp.main_loop(driver, tag_names)
 
 
 if __name__ == "__main__":
