@@ -148,9 +148,9 @@ class BotApp:
         while True:
             try:
 
-                log.info("Checking for request in 5...")
+                #log.info("Checking for request in 5...")
                 time.sleep(5)
-                log.info("Checking now.")
+                #log.info("Checking now.")
                 BotApp.search_tagging()
 
             except KeyboardInterrupt:
