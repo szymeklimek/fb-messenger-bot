@@ -9,7 +9,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-import driver_setup as driver_setup
+import src.driver_setup as driver_setup
 
 meme_img_list = list()
 user_tags = list()
@@ -28,7 +28,7 @@ class BotApp:
     pw = os.environ['BOTPW'].replace('\\', '')
     test_id = "3724459277571389"
     mafia_id = "1758853220817730"
-    url = "https://www.facebook.com/messages/t/" + test_id
+    url = "https://www.facebook.com/messages/t/" + mafia_id
 
     @staticmethod
     def print_tags():
@@ -57,7 +57,7 @@ class BotApp:
         text_area.send_keys(Keys.ENTER)
         text_area = BotApp.driver.switch_to.active_element
         time.sleep(.05)
-        text_area.send_keys("Next poll available in {:d} seconds.".format(timeout))
+        text_area.send_keys("Next poll available in {:d} seconds.".format(timeout + 5))
         time.sleep(.05)
         text_area.send_keys(Keys.ENTER)
 
@@ -93,18 +93,19 @@ class BotApp:
     def print_help():
         text_area = BotApp.driver.switch_to.active_element
         time.sleep(.05)
-        text_area.send_keys(
-
-            "Available commands:\n'@Matthew Botte' => Tags all of the conversation "
-            "members.\n'@Matthew Botte update' => Updates the conversation member list - use after adding/removing "
-            "people.\n'@Matthew Botte meme' => Sends a random meme."
-
-        )
+        message = "Available commands:\n'@Matthew Botte' => Tags all of the conversation members.\n'@Matthew Botte " \
+                  "update' => Updates the conversation member list - use after adding/removing people.\n'@Matthew " \
+                  "Botte meme' => Sends a random meme. "
+        text_area.send_keys(message)
         time.sleep(.05)
+        text_area = BotApp.driver.switch_to.active_element
         text_area.send_keys(Keys.ENTER)
 
     @staticmethod
     def search_tagging():
+
+        global user_tags
+
         src = BotApp.driver.page_source
         meme_found = "@Matthew Botte</a></div><span> meme" in src
         tag_found = "@Matthew Botte</a></div></" in src
@@ -113,18 +114,23 @@ class BotApp:
 
         if meme_found:
             BotApp.print_meme()
+            time.sleep(5)
+            BotApp.hide_bot_tags()
 
         if tag_found:
             BotApp.print_tags()
+            time.sleep(5)
+            BotApp.hide_bot_tags()
 
         if help_found:
             BotApp.print_help()
+            time.sleep(5)
+            BotApp.hide_bot_tags()
 
         if update_found:
-            BotApp.user_tags = BotApp.update_conf_participants()
-
-        time.sleep(5)
-        BotApp.hide_bot_tags()
+            BotApp.update_conf_participants(False)
+            time.sleep(5)
+            BotApp.hide_bot_tags()
 
     @staticmethod
     def hide_bot_tags():
@@ -134,14 +140,26 @@ class BotApp:
             BotApp.driver.execute_script(js, element)
 
     @staticmethod
-    def update_conf_participants():
+    def update_conf_participants(initflag):
+
+        global user_tags
+
         tag_names = BotApp.driver.find_elements_by_class_name('_8slc')
         tag_names = [x.text for x in tag_names]
         tag_names = ["@" + name + " " for name in tag_names]
         tag_names = [name for name in tag_names if name != "@Matthew Botte "]
         tag_names = [name.split(" ")[0] for name in tag_names]
 
-        return tag_names
+        if not initflag:
+            text_area = BotApp.driver.switch_to.active_element
+            time.sleep(.05)
+            text_area.send_keys("Updated conversation user list.")
+            time.sleep(.05)
+            text_area.send_keys(Keys.ENTER)
+
+        log.info("Updated conversation user list.")
+        log.info(tag_names)
+        user_tags = tag_names
 
     @staticmethod
     def main_loop():
@@ -179,11 +197,11 @@ class BotApp:
         password_box.send_keys(BotApp.pw)
         password_box.send_keys(Keys.RETURN)
 
-        user_tags = BotApp.update_conf_participants()
+        time.sleep(2)
+        BotApp.update_conf_participants(True)
         BotApp.hide_bot_tags()
 
         log.info(driver.current_url)
-        log.info(user_tags)
         log.info("Logged in, waiting for requests...")
 
         BotApp.main_loop()
