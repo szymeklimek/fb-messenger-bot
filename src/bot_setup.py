@@ -12,17 +12,16 @@ from selenium.webdriver.support.ui import WebDriverWait
 import driver_setup as driver_setup
 
 meme_img_list = list()
+user_tags = list()
 
 
 class BotApp:
-
     # TODO - dynamiczne/reczne updatowanie listy uczestników
     # TODO  - trzeba ogarnac plik config.ini - libka configparser
     # config = configparser.ConfigParser()
     # config.read('config.ini')
 
     driver = driver_setup.get_chrome_driver()
-    user_tags = []
 
     memespath = os.getcwd() + "/img/"
     user = "mafiabot123@gmail.com"
@@ -33,6 +32,8 @@ class BotApp:
 
     @staticmethod
     def print_tags():
+        
+        global user_tags
         text_area = None
 
         # TODO - timeout
@@ -41,7 +42,7 @@ class BotApp:
 
         log.info("Found @Bot tag. Printing Users '@' Tags... ")
 
-        for name in BotApp.user_tags:
+        for name in user_tags:
             text_area = BotApp.driver.switch_to.active_element
             text_area.send_keys(name)
             text_area = BotApp.driver.switch_to.active_element
@@ -148,9 +149,9 @@ class BotApp:
         while True:
             try:
 
-                #log.info("Checking for request in 5...")
+                # log.info("Checking for request in 5...")
                 time.sleep(5)
-                #log.info("Checking now.")
+                # log.info("Checking now.")
                 BotApp.search_tagging()
 
             except KeyboardInterrupt:
@@ -158,6 +159,8 @@ class BotApp:
 
     @staticmethod
     def main():
+        
+        global user_tags
 
         lclient = google.cloud.logging.Client()
         lclient.get_default_handler()
@@ -176,14 +179,15 @@ class BotApp:
         password_box.send_keys(BotApp.pw)
         password_box.send_keys(Keys.RETURN)
 
-        BotApp.user_tags = BotApp.update_conf_participants()
+        user_tags = BotApp.update_conf_participants()
         BotApp.hide_bot_tags()
 
         log.info(driver.current_url)
-        log.info(BotApp.user_tags)
+        log.info(user_tags)
         log.info("Logged in, waiting for requests...")
-        
+
         BotApp.main_loop()
+
 
 if __name__ == "__main__":
     meme_img_list = os.listdir(BotApp.memespath)
