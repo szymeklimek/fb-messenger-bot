@@ -150,7 +150,7 @@ def update_conf_participants(initflag):
     user_tags = tag_names
 
 
-@scheduler.scheduled_job('interval', second=10)
+@scheduler.scheduled_job('interval', seconds=10)
 def main_loop():
     try:
 
@@ -161,7 +161,7 @@ def main_loop():
         driver.close()
 
 
-@scheduler.scheduled_job('interval', hour=1)
+@scheduler.scheduled_job('interval', hours=1)
 def refresh_page():
     driver.refresh()
 
