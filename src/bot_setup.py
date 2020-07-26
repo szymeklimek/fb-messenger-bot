@@ -9,7 +9,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 
-import src.driver_setup as driver_setup
+import driver_setup as driver_setup
 
 meme_img_list = list()
 user_tags = list()
