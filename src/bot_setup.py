@@ -4,6 +4,7 @@ import os
 import random
 import time
 
+from apscheduler.schedulers.blocking import BlockingScheduler
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
@@ -32,7 +33,7 @@ class BotApp:
 
     @staticmethod
     def print_tags():
-        
+
         global user_tags
         text_area = None
 
@@ -72,13 +73,13 @@ class BotApp:
 
         log.info("Found @Bot meme tag. Sending Random Meme... ")
 
-        img_path = BotApp.memespath + "/" + random.choice(meme_img_list)
+        img = BotApp.memespath + "/" + random.choice(meme_img_list)
 
         img_input = driver.find_element_by_xpath(
             '/html/body/div[1]/div[3]/div[1]/div/div/div/div[2]/span/div[2]/div[2]/div[2]/div/div[3]/div[2]/form/div/span/input')
 
         time.sleep(.05)
-        img_input.send_keys(img_path)
+        img_input.send_keys(img)
         time.sleep(.05)
         text_area = driver.switch_to.active_element
         time.sleep(.05)
@@ -86,8 +87,7 @@ class BotApp:
 
         log.info("Meme sent.")
 
-        time.sleep(5)
-        driver.get(BotApp.url)
+        driver.refresh()
 
     @staticmethod
     def print_help():
@@ -162,22 +162,25 @@ class BotApp:
         user_tags = tag_names
 
     @staticmethod
+    @scheduler.scheduled_job('interval', seconds=10)
     def main_loop():
 
-        while True:
-            try:
+        try:
 
-                # log.info("Checking for request in 5...")
-                time.sleep(5)
-                # log.info("Checking now.")
-                BotApp.search_tagging()
+            log.debug("Checking for request now. (interval = {:d}s)".format(10))
+            BotApp.search_tagging()
 
-            except KeyboardInterrupt:
-                BotApp.driver.close()
+        except KeyboardInterrupt:
+            BotApp.driver.close()
+
+    @staticmethod
+    @scheduler.scheduled_job('interval', hours=1)
+    def refresh_page():
+        BotApp.driver.refresh()
 
     @staticmethod
     def main():
-        
+
         global user_tags
 
         lclient = google.cloud.logging.Client()
@@ -204,10 +207,11 @@ class BotApp:
         log.info(driver.current_url)
         log.info("Logged in, waiting for requests...")
 
-        BotApp.main_loop()
+        scheduler = BlockingScheduler()
+        scheduler.start()
 
 
 if __name__ == "__main__":
     meme_img_list = os.listdir(BotApp.memespath)
-
+    print(len(meme_img_list))
     BotApp.main()
