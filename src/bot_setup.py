@@ -22,10 +22,10 @@ class BotApp:
     # config.read('config.ini')
 
     memespath = "D:/pythonscr/fb-messenger-bot/img"
-    user = "mafiabot123@gmail.com"
-    pw = "*jK`=s:5kV]}Ub>*"
-    test_id = "3724459277571389"
-    mafia_id = "1758853220817730"
+    user = "email"
+    pw = "pass"
+    test_id = "group_id_1"
+    mafia_id = "group_id_2"
     url = "https://www.facebook.com/messages/t/" + test_id
 
     driver = driver_setup.get_driver()
